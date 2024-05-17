@@ -37,27 +37,11 @@ jobs:
     name: Deploy Project to STAGING server
     runs-on: ubuntu-latest
     needs: [laravel-tests]
-    if: github.ref == 'refs/heads/dev'
     steps:
-      - uses: actions/checkout@v4
-      - name: Fetch built assets from Artifacts
-        uses: actions/download-artifact@v1
+      - name: deploy
+        uses: yankewei/laravel-deploy-action@main
         with:
-          name: assets
-          path: public
-      - name: Setup PHP
-        uses: shivammathur/setup-php@master
-        with:
-          php-version: '8.3'
-          extension-csv: mbstring, bcmath
-      - name: Composer install
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
-      - name: Setup Deployer
-        uses: atymic/deployer-php-action@master
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
-      - name: Deploy to Staging
-        env:
-          DOT_ENV: ${{ secrets.DOT_ENV_STAGING }}
-        run: dep deploy staging --tag=${{ env.GITHUB_REF }} -vvv
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          app_env_data: ${{ secrets.APP_ENV_DATA }}
