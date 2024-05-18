@@ -1,0 +1,4 @@
+models:
+    Permission: { name: string, guard_name: string }
+    Role: { name: string, guard_name: string }
+    User: { username: 'string nullable default:NULL', name: string, email: string, email_verified_at: 'timestamp nullable default:NULL', password: string, type: 'integer default:1', active: 'integer default:1', avatar: 'string nullable default:NULL', profile_photo: 'text nullable default:NULL', remember_token: 'string:100 nullable default:NULL' }
