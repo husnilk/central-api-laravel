@@ -18,6 +18,7 @@ class DepartmentResource extends JsonResource
             'faculty_id' => $this->faculty_id,
             'abbreviation' => $this->abbreviation,
             'national_code' => $this->national_code,
+            'curricula' => CurriculumCollection::make($this->whenLoaded('curricula')),
             'faculty' => FacultyResource::make($this->whenLoaded('faculty')),
         ];
     }

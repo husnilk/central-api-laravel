@@ -1,0 +1,89 @@
+created:
+    - app/Http/Controllers/Api/BuildingController.php
+    - app/Http/Controllers/Api/RoomController.php
+    - app/Http/Controllers/Api/FacultyController.php
+    - app/Http/Controllers/Api/DepartmentController.php
+    - app/Http/Controllers/Api/StudentController.php
+    - app/Http/Controllers/Api/LecturerController.php
+    - app/Http/Controllers/Api/StaffController.php
+    - database/factories/UserLoginFactory.php
+    - database/factories/BuildingFactory.php
+    - database/factories/RoomFactory.php
+    - database/factories/FacultyFactory.php
+    - database/factories/DepartmentFactory.php
+    - database/factories/LecturerFactory.php
+    - database/factories/StudentFactory.php
+    - database/factories/StaffFactory.php
+    - database/migrations/2024_05_19_051539_create_user_logins_table.php
+    - database/migrations/2024_05_19_051540_create_buildings_table.php
+    - database/migrations/2024_05_19_051541_create_rooms_table.php
+    - database/migrations/2024_05_19_051542_create_faculties_table.php
+    - database/migrations/2024_05_19_051543_create_departments_table.php
+    - database/migrations/2024_05_19_051544_create_lecturers_table.php
+    - database/migrations/2024_05_19_051545_create_students_table.php
+    - database/migrations/2024_05_19_051546_create_staff_table.php
+    - app/Models/UserLogin.php
+    - app/Models/Building.php
+    - app/Models/Room.php
+    - app/Models/Faculty.php
+    - app/Models/Department.php
+    - app/Models/Lecturer.php
+    - app/Models/Student.php
+    - app/Models/Staff.php
+    - database/seeders/BuildingSeeder.php
+    - database/seeders/RoomSeeder.php
+    - database/seeders/FacultySeeder.php
+    - database/seeders/DepartmentSeeder.php
+    - database/seeders/StudentSeeder.php
+    - database/seeders/LecturerSeeder.php
+    - database/seeders/StaffSeeder.php
+    - database/seeders/Seeder.php
+    - tests/Feature/Http/Controllers/Api/BuildingControllerTest.php
+    - tests/Feature/Http/Controllers/Api/RoomControllerTest.php
+    - tests/Feature/Http/Controllers/Api/FacultyControllerTest.php
+    - tests/Feature/Http/Controllers/Api/DepartmentControllerTest.php
+    - tests/Feature/Http/Controllers/Api/StudentControllerTest.php
+    - tests/Feature/Http/Controllers/Api/LecturerControllerTest.php
+    - tests/Feature/Http/Controllers/Api/StaffControllerTest.php
+    - app/Http/Requests/BuildingStoreRequest.php
+    - app/Http/Requests/BuildingUpdateRequest.php
+    - app/Http/Requests/RoomStoreRequest.php
+    - app/Http/Requests/RoomUpdateRequest.php
+    - app/Http/Requests/FacultyStoreRequest.php
+    - app/Http/Requests/FacultyUpdateRequest.php
+    - app/Http/Requests/DepartmentStoreRequest.php
+    - app/Http/Requests/DepartmentUpdateRequest.php
+    - app/Http/Requests/StudentStoreRequest.php
+    - app/Http/Requests/StudentUpdateRequest.php
+    - app/Http/Requests/LecturerStoreRequest.php
+    - app/Http/Requests/LecturerUpdateRequest.php
+    - app/Http/Requests/StaffStoreRequest.php
+    - app/Http/Requests/StaffUpdateRequest.php
+    - app/Http/Resources/BuildingCollection.php
+    - app/Http/Resources/BuildingResource.php
+    - app/Http/Resources/RoomCollection.php
+    - app/Http/Resources/RoomResource.php
+    - app/Http/Resources/FacultyCollection.php
+    - app/Http/Resources/FacultyResource.php
+    - app/Http/Resources/DepartmentCollection.php
+    - app/Http/Resources/DepartmentResource.php
+    - app/Http/Resources/StudentCollection.php
+    - app/Http/Resources/StudentResource.php
+    - app/Http/Resources/LecturerCollection.php
+    - app/Http/Resources/LecturerResource.php
+    - app/Http/Resources/StaffCollection.php
+    - app/Http/Resources/StaffResource.php
+updated:
+    - routes/api.php
+models:
+    Permission: { name: string, guard_name: string }
+    Role: { name: string, guard_name: string }
+    User: { id: 'char:36', username: 'string nullable default:NULL', name: string, email: string, email_verified_at: 'timestamp nullable default:NULL', password: string, type: 'integer default:1', active: 'integer default:1', avatar: 'string nullable default:NULL', profile_photo: 'text nullable default:NULL', remember_token: 'string:100 nullable default:NULL' }
+    UserLogin: { user_id: uuid, ip_address: string, user_agent: string, payload: string, last_activity: integer }
+    Building: { id: 'uuid primary', name: string, floors: 'integer nullable', build_year: 'year nullable', relationships: { hasMany: Room } }
+    Room: { id: 'uuid primary', building_id: 'uuid foreign:buildings.id', name: string, floor: 'integer nullable', number: 'integer nullable', capacity: 'integer nullable', size: 'integer nullable', location: 'geography:point nullable', public: 'integer nullable', status: 'integer nullable', availability: 'integer default:1', relationships: { belongsTo: Building } }
+    Faculty: { id: 'uuid primary', name: string, abbreviation: 'string nullable', type: integer, relationships: { hasMany: Department } }
+    Department: { id: 'uuid primary', name: string, faculty_id: 'uuid foreign:faculties.id', abbreviation: 'string nullable', national_code: 'string nullable', relationships: { hasMany: 'Lecturer, Student, Staff, Curriculum', belongsTo: Faculty } }
+    Lecturer: { id: 'uuid primary foreign:lecturers.id', nik: 'string unique', name: string, nip: 'string nullable', nidn: 'string nullable', karpeg: 'string nullable', npwp: 'string nullable', gender: 'enum:M,F nullable', birthday: 'date nullable', birthplace: 'string nullable', phone: 'string nullable', address: 'string nullable', department_id: 'uuid foreign:departments.id', photo: 'string nullable', marital_status: 'integer nullable', religion: 'integer nullable', association_type: 'integer nullable', status: 'integer default:1', relationships: { hasMany: Student, belongsTo: Department } }
+    Student: { id: 'uuid primary foreign:students.id', nik: 'string nullable', nim: 'string unique', name: string, year: 'integer nullable', gender: 'enum:M,F nullable', birthday: 'date nullable', birthplace: 'string nullable', phone: 'string nullable', address: 'text nullable', department_id: 'uuid foreign:departments.id', photo: 'string nullable', marital_status: 'integer nullable', religion: integer, status: 'integer default:1', counselor_id: 'uuid nullable foreign:lecturers.id', relationships: { belongsTo: Department } }
+    Staff: { id: 'uuid primary foreign:staffs.id', nik: string, name: string, nip: 'string nullable', karpeg: 'string nullable', npwp: 'string nullable', gender: 'integer nullable', birthday: 'date nullable', birthplace: 'string nullable', phone: 'string nullable', address: 'text nullable', department_id: 'uuid foreign:departments.id', photo: 'string nullable', marital_status: 'integer nullable', religion: 'integer nullable', association_type: 'integer nullable', status: 'integer default:1', relationships: { belongsTo: Department } }

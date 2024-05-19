@@ -23,7 +23,7 @@ class UserLoginFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'ip_address' => $this->faker->ipv4(),
+            'ip_address' => $this->faker->word(),
             'user_agent' => $this->faker->word(),
             'payload' => $this->faker->word(),
             'last_activity' => $this->faker->numberBetween(-10000, 10000),
