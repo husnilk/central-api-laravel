@@ -197,12 +197,6 @@ models:
       belongsTo: Curriculum
       hasMany: CoursePlan, CoursePlanRequirement, ClassCourse, CurriculumIndicatorCourse
 
-  CurriculumIndicatorCourse:
-    id: uuid primary
-    curriculum_indicator_id: uuid foreign:curriculum_indicators.id
-    course_id: uuid foreign:courses.id
-    relationships:
-      belongsTo: CurriculumIndicator, Course
 
   CoursePlan: # RPS
     id: uuid primary
@@ -236,7 +230,7 @@ models:
     req_course_id: uuid foreign:courses.id onUpdate:cascade
     req_level: integer
     relationships:
-      belongsTo: Course, CoursePlan
+      belongsTo: CoursePlan
 
   CoursePlanLo: # CPMK
     id: uuid primary
@@ -298,10 +292,10 @@ models:
     material: text nullable
     reference: text nullable
     #! assessment_weight: double:8,2 nullable #bobot penilaian
-    #! method: string nullable #synchronus dkk
-    #! activity: integer nullable #kosongin aja
-    #! est_time: integer nullable
-    #! student_activity: text nullable #kegiatan didalam method
+    method: string nullable #synchronus dkk
+    activity: integer nullable #kosongin aja
+    est_time: integer nullable
+    student_activity: text nullable #kegiatan didalam method
     relationships:
       hasMany: CoursePlanDetailActivity, ClassMeeting
       belongsTo: CoursePlan, CoursePlanLo
@@ -876,7 +870,7 @@ controllers:
     resource: api
   CoursePlanDetail:
     resource: api
-  CourseCurriculumIndicatorSeeder:
+  CourseCurriculumIndicator:
     resource: api
   # Assessment
   CoursePlanAssessment:

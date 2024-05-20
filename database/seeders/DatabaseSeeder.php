@@ -34,7 +34,6 @@ class DatabaseSeeder extends Seeder
             CurriculumBokSeeder::class,
             CurriculumBokDetailSeeder::class,
             CourseSeeder::class,
-            CurriculumBokDetailCourseSeeder::class,
             CoursePlanSeeder::class,
             CoursePlanRequirementSeeder::class,
             CoursePlanLoSeeder::class,
