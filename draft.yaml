@@ -100,7 +100,7 @@ models:
     nip: string nullable
     karpeg: string nullable
     npwp: string nullable
-    gender: integer nullable
+    gender: enum:M,F nullable
     birthday: date nullable
     birthplace: string nullable
     phone: string nullable
