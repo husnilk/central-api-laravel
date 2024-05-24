@@ -21,28 +21,28 @@ class PasswordController extends Controller
         $user = User::find(Auth::user()->id);
 
         if ($user) {
-            if (Hash::check($data["password_current"], $user->password)) {
-                $user->password = Hash::make($data["password_new"]);
+            if (Hash::check($data['password_current'], $user->password)) {
+                $user->password = Hash::make($data['password_new']);
                 if ($user->save()) {
                     // logout
-                   Auth::user()->tokens()->delete();
+                    Auth::user()->tokens()->delete();
 
                     return response()->json([
-                        'status' => "success",
+                        'status' => 'success',
                         'message' => 'Password berhasil diperbarui',
-                        'user' => $user
+                        'user' => $user,
                     ], 200);
                 }
             } else {
                 return response()->json([
-                    'status' => "failed",
+                    'status' => 'failed',
                     'message' => 'Password Lama Salah',
                 ], 403);
             }
         }
 
         return response()->json([
-            'status' => "failed",
+            'status' => 'failed',
             'message' => 'Gagal Merubah Password',
         ], 403);
     }
@@ -56,7 +56,7 @@ class PasswordController extends Controller
         DB::table('password_resets')->insert([
             'email' => $request->email,
             'token' => $token,
-            'created_at' => Carbon::now()
+            'created_at' => Carbon::now(),
         ]);
 
         Mail::send('email.forgetpassword', ['token' => $token], function ($message) use ($request) {
@@ -69,5 +69,4 @@ class PasswordController extends Controller
             'message' => 'Berhasil Mengirimkan Email',
         ], 200);
     }
-
 }

@@ -18,7 +18,7 @@ class ProfileController extends Controller
         // get profil
         $user = $request->user();
         $profil = collect();
-        
+
         if($user->type === User::LECTURER){
             $profil = $user->load(['lecturer' => function($query){
                 $query->select("lecturers.*", "departments.name as department_name")
@@ -40,7 +40,7 @@ class ProfileController extends Controller
 
         $profil->username = $user->username;
         $profil->email = $user->email;
-        
+
         return response()->json([
             'status' => 'success',
             'message' => 'Data retrieved successfully',
@@ -118,18 +118,18 @@ class ProfileController extends Controller
         $isExist = User::where("email", $data["email"])
                         ->where("id", "!=", $request->user()->id)
                         ->first();
-        
+
         if($isExist){
             return response()->json([
                 "status" => "failed",
                 "message" => "Email sudah digunakan",
             ], 400);
         }
-        
+
         // update akun
         $user->email = $data["email"];
         $user->save();
-        
+
         // cek data profil civitas
         if($civitas !== null){
             // update profile
@@ -141,7 +141,7 @@ class ProfileController extends Controller
             $civitas->gender = in_array($data["gender"], ["M", "F"]) ? $data["gender"] : null;
             $civitas->marital_status = $data["marital_status"] ?? null;
             $civitas->religion = $data["religion"] ?? null;
-            
+
             switch($request->user()->type){
                 case User::LECTURER:
                     $civitas->nidn = $data["nidn"] ?? null;

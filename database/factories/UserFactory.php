@@ -38,7 +38,8 @@ class UserFactory extends Factory
         ];
     }
 
-    public function admin() : static {
+    public function admin(): static
+    {
         return $this->state([
             'username' => 'admin',
             'name' => 'Super Admin',
@@ -48,7 +49,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'type' => 1,
             'active' => 1,
-            'avatar' => null
+            'avatar' => null,
         ]);
     }
 
@@ -56,7 +57,7 @@ class UserFactory extends Factory
     {
         return $this->state([
             'type' => User::STUDENT,
-            'username' => $this->faker->numerify('S#####')
+            'username' => $this->faker->numerify('S#####'),
         ]);
     }
 
@@ -64,7 +65,7 @@ class UserFactory extends Factory
     {
         return $this->state([
             'type' => User::LECTURER,
-            'username' => $this->faker->numerify('L####')
+            'username' => $this->faker->numerify('L####'),
         ]);
     }
 
@@ -72,11 +73,9 @@ class UserFactory extends Factory
     {
         return $this->state([
             'type' => User::STAFF,
-            'username' => $this->faker->numerify('E####')
+            'username' => $this->faker->numerify('E####'),
         ]);
     }
-
-
 
     /**
      * Indicate that the model's email address should be unverified.

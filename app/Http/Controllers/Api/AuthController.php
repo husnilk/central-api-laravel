@@ -15,43 +15,46 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $data = $request->validated();
-        $email = $data["email"];
-        $password = $data["password"];
-        $remember_me = $data["remember_me"] ?? null;
+        $email = $data['email'];
+        $password = $data['password'];
+        $remember_me = $data['remember_me'] ?? null;
 
         $user = User::where('email', $email)->first();
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             return response()->json([
                 'status' => 'failed',
-                'message' => 'Kredensial tidak valid'
+                'message' => 'Kredensial tidak valid',
             ], 400);
         }
 
-        // create token
-        $token = null;
+        // create accessToken
+        $accessToken = null;
         if ($remember_me) {
-            $token = $user->createToken('API_TOKEN');
+            $accessToken = $user->createToken('access_token');
         } else {
-            $token = $user->createToken('API_TOKEN', ['*'], Carbon::now()->addHours(2));
+            $accessToken = $user->createToken('access_token', ['*'], Carbon::now()->addHours(2));
+            $refreshToken = $user->createToken('refresh_token', ['*'], Carbon::now()->addHours(2));
         }
 
         // get profil
         $profile = collect();
         if ($user->type === User::LECTURER) {
             $profile = $user->load(['lecturer' => function ($query) {
-                $query->select("lecturers.*", "departments.name as department_name")
-                    ->join("departments", "lecturers.department_id", "departments.id");
+                $query->select('lecturers.*', 'departments.name as department_name')
+                    ->join('departments', 'lecturers.department_id', 'departments.id');
             }])->lecturer;
         } elseif ($user->type === User::STUDENT) {
             $profile = $user->load(['student' => function ($query) {
-                $query->select("students.*", "departments.name as department_name")
-                    ->join("departments", "students.department_id", "departments.id");
+                $query->select('students.*', 'departments.name as department_name')
+                    ->join('departments', 'students.department_id', 'departments.id');
             }])->student;
         } elseif ($user->type === User::STAFF) {
             $profile = $user->load(['staff' => function ($query) {
-                $query->select("staff.*", "departments.name as department_name")
-                    ->join("departments", "staff.department_id", "departments.id");
+                $query->select('staff.*', 'departments.name as department_name')
+                    ->join('departments', 'staff.department_id', 'departments.id');
             }])->staff;
+        } else {
+            $profile = new \stdClass();
         }
 
         $profile->username = $user->username;
@@ -59,35 +62,37 @@ class AuthController extends Controller
 
         // define response data
         $data = [
-            "authorization" => [
-                "token" => $token->plainTextToken,
-                "type" => "Bearer",
-                "expires_at" => strtotime($token->accessToken->expires_at) * 1000,
+            'authorization' => [
+                'accessToken' => $accessToken->plainTextToken,
+                'refreshToken' => $refreshToken->plainTextToken,
+                'type' => 'Bearer',
+                'expires_at' => strtotime($accessToken->accessToken->expires_at) * 1000,
             ],
-            "profile" => $profile,
-            "permissions" => $user->getAllPermissions(),
+            'profile' => $profile,
+            'permissions' => $user->getAllPermissions(),
         ];
 
         return response()->json([
             'status' => 'success',
             'message' => 'Login berhasil',
-            'data' => $data
+            'data' => $data,
         ]);
     }
 
     public function refresh(Request $request)
     {
-        $token = auth("api")->refresh();
+        $accessToken = auth()->user()->createToken('access_token');
+        //$token = auth('sanctum')->refresh();
         // auth("api")->user()->tokens()->delete();
         // $token = auth("api")->user()->createToken('API_TOKEN',['*'],Carbon::now()->addHours(2))->plainTextToken;
 
         return response()->json([
             'status' => 'success',
             'authorization' => [
-                'token' => $token,
+                'token' => $accessToken->plainTextToken,
                 'type' => 'bearer',
                 'expires_in' => 7200000,
-            ]
+            ],
         ]);
     }
 
@@ -98,7 +103,7 @@ class AuthController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Successfully logout'
+            'message' => 'Successfully logout',
         ]);
     }
 
@@ -106,7 +111,7 @@ class AuthController extends Controller
     {
         return response()->json([
             'status' => 'failed',
-            'message' => 'Tidak terautentikasi'
+            'message' => 'Tidak terautentikasi',
         ], 401);
     }
 
@@ -114,7 +119,7 @@ class AuthController extends Controller
     {
         return response()->json([
             'status' => 'failed',
-            'message' => 'Akses tidak diizinkan'
+            'message' => 'Akses tidak diizinkan',
         ], 403);
     }
 

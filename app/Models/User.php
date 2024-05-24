@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -13,10 +14,12 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles, HasApiTokens, HasPermissions, HasUuids;
+    use HasApiTokens, HasFactory, HasPermissions, HasRoles, HasUuids, Notifiable;
 
     const STUDENT = 1;
+
     const LECTURER = 2;
+
     const STAFF = 3;
 
     /**
@@ -54,5 +57,10 @@ class User extends Authenticatable
             'active' => 'integer',
             'type' => 'integer',
         ];
+    }
+
+    public function logins(): HasMany
+    {
+        return $this->hasMany(UserLogin::class);
     }
 }
