@@ -365,12 +365,12 @@ models:
     semester: integer
     active: boolean default:false
     relationships:
-      hasMany: ClassCourse, StudyPlan
+      hasMany: ClassCourse, CourseEnrollment
 
   ClassCourse: # Kelas dalam Perkuliahan
     id: uuid primary
     course_id: uuid foreign:courses.id onUpdate:cascade
-    periode_id: uuid foreign:periods.id onUpdate:cascade
+    period_id: uuid foreign:periods.id onUpdate:cascade
     course_plan_id: uuid foreign:course_plans.id onUpdate:cascade
     name: string
     course_code: string nullable
@@ -381,7 +381,7 @@ models:
     meeting_verified: boolean nullable #verifikasi bap
     relationships:
       belongsTo: Period, CoursePlan, Course
-      hasMany: ClassSchedule, ClassClecturer, StudyPlanDetail, ClassMeeting
+      hasMany: ClassSchedule, ClassClecturer, CourseEnrollment, ClassMeeting
 
   ClassSchedule: #Jadwal Perkuliahan
     id: uuid primary
@@ -403,38 +403,40 @@ models:
       belongsTo: ClassCourse, Lecturer
 
   ## Manajemen KRS Mahasiswa
-  StudyPlan: # KRS Mahasiswa
+  CourseEnrollment: # KRS Mahasiswa
     id: uuid primary
     student_id: uuid foreign:students.id onUpdate:cascade
-    periode_id: uuid foreign:periods.id onUpdate:cascade
+    period_id: uuid foreign:periods.id onUpdate:cascade
     counselor_id: uuid foreign:lecturers.id onUpdate:cascade
     status: integer default:1 #1:active
+    mid_term_passcode: string nullable
+    final_term_passcode: string nullable
     registered_at: date
     gpa: double:8,2
     relationships:
       belongsTo: Student, Period
-      hasMany: StudyPlanDetail
+      hasMany: CourseEnrollmentDetail
 
-  StudyPlanDetail: #Detail KRS mahasiswa per semester
+  CourseEnrollmentDetail: #Detail KRS mahasiswa per semester
     id: uuid primary
-    study_plan_id: uuid foreign:study_plans.id onUpdate:cascade
+    course_enrollment_id: uuid foreign:course_enrollments.id onUpdate:cascade
     class_id: uuid foreign:class_courses.id onUpdate:cascade
     status: integer default:1
     in_transcript: integer default:1
     weight: double nullable
     grade: double nullable
     relationships:
-      belongsTo: StudyPlan, ClassCourse
+      belongsTo: CourseEnrollment, ClassCourse
       hasMany: Assessment, ClassAttendance
 
   ## Manajemen Nilai per Kelas
   Assessment:
     id: uuid primary
     assessment_detail_id: uuid foreign:assessment_details.id onUpdate:cascade
-    study_plan_detail_id: uuid foreign:study_plan_details.id onUpdate:cascade
+    course_enrollment_detail_id: uuid foreign:course_enrollment_details.id onUpdate:cascade
     grade: double:8,2
     relationships:
-      belongsTo: AssessmentDetail, StudyPlanDetail
+      belongsTo: AssessmentDetail, CourseEnrollmentDetail
 
   #########################################################################
   # Manajemen Kehadiran
@@ -444,6 +446,7 @@ models:
     meet_no: integer
     class_id: uuid foreign:class_courses.id onUpdate:cascade
     course_plan_detail_id: uuid foreign:course_plan_details.id onUpdate:cascade
+    class_lecturer_id: uuid foreign:class_lecturers.id onUpdate:cascade
     material_real: text
     assessment_real: text # dropdown/select/checkbox saja
     method: integer default:1 # 1= offline
@@ -453,23 +456,37 @@ models:
     meeting_start_at: timestamp nullable
     meeting_end_at: timestamp nullable
     relationships:
-      belongsTo: ClassCourse, CoursePlanDetail, Room
+      belongsTo: ClassCourse, CoursePlanDetail, Room, Lecturer
       hasMany: ClassAttendance
 
   ClassAttendance: # Absensi Kehadiran Mahasiswa
     id: uuid primary
-    study_plan_detail_id: uuid foreign:study_plan_details.id onUpdate:cascade
+    course_enrollment_detail_id: uuid foreign:course_enrollment_details.id onUpdate:cascade
     class_meeting_id: uuid foreign:class_meetings.id onUpdate:cascade
+    status: integer default:1
     meet_no: integer
     device_id: string nullable
     device_name: string nullable
-    lattitude: double nullable
+    latitude: double nullable
     longitude: double nullable
     attendance_status: integer default:0
     need_attention: integer default:0
     information: text
+    permit_reason: text nullable
+    permit_file: string nullable
+    rating: double nullable
+    feedback: text nullable
     relationships:
-      belongsTo: StudyPlanDetail, ClassMeeting
+      belongsTo: CourseEnrollmentDetail, ClassMeeting
+
+  ClassProblem:
+    id: uuid primary
+    class_course_id: uuid foreign:class_courses.id
+    course_enrollment_detail_id: uuid foreign:course_enrollment_details.id
+    problem: text
+    solution: text nullable
+    relationships:
+      belongsTo: ClassCourse
 
   #########################################################################
   # Manajemen Data Penelitian
@@ -573,10 +590,12 @@ models:
   InternshipProposal:
     id: uuid primary
     company_id: uuid foreign:internship_companies.id
+    type: integer default:1 #1=internal(student->company), 2=external (company->student)
     title: string
+    job_desc: text nullable
     start_at: date
     end_at: date
-    status: enum:"draft","proposed","need_revision","revised","rejected","accepted" default:"draft"
+    status: enum:"draft","open", "proposed","need_revision","revised","rejected","accepted" default:"draft"
     note: text nullable
     active: integer default:1
     response_letter: string nullable
@@ -679,6 +698,20 @@ models:
     relationships:
       belongsTo: Thesis, Lecturer
       hasMany: ThesisLogbook
+
+  ThesisDataRequest:
+    id: uuid primary
+    thesis_id: uuid foreign:theses.id
+    supervisor_id: uuid foreign:thesis_supervisors.id
+    request_at: datetime
+    requested_data: text
+    request_to_person: text nullable
+    request_to_position: text nullable
+    request_to_org: text nullable
+    request_to_address: text nullable
+    status: integer default:0
+    relationships:
+      belongsTo: Thesis, Student
 
   ThesisProposal:
     id: uuid primary
@@ -795,6 +828,36 @@ models:
     relationships:
       belongsTo: ThesisDefenseExaminer, ThesisRubricDetail
 
+  #########################################################################
+  # Manajemen Bimbingan Akademik
+  #########################################################################
+  CounsellingTopic:
+    id: uuid primary
+    name: string
+    relationships:
+      hasMany: CounsellingLogbook
+
+  CounsellingLogbook:
+    id: uuid primary
+    student_id: uuid foreign:students.id
+    counsellor_id: uuid foreign:lecturers.id
+    counselling_topic_id: uuid foreign:counselling_categories.id
+    period_id: uuid foreign:periods.id
+    date: date
+    status: integer default:0
+    file: string nullable
+    relationships:
+      belongsTo: Student, CounsellingCategory, Period
+
+  CounsellingLogbookDetail:
+    id: uuid primary
+    no: integer default:1
+    counselling_logbook_id: uuid foreign:counselling_logbooks.id
+    user_id: uuid foreign:users.id
+    description: text nullable
+    relationships:
+      belongsTo: CounsellingLogbook
+
 seeders:
   # Data Master
   Building, Room, Faculty, Department, Student, Lecturer, Staff,
@@ -805,9 +868,9 @@ seeders:
   # Assessment
   AssessmentDetail, AssessmentCriteria, AssessmentRubric, Assessment,
   # Manajemen Kelas
-  Period, ClassCourse, ClassSchedule, ClassLecturer, StudyPlan, StudyPlanDetail,
+  Period, ClassCourse, ClassSchedule, ClassLecturer, CourseEnrollment, CourseEnrollmentDetail,
   # Manajemen Kehadiran
-  ClassMeeting, ClassAttendance,
+  ClassMeeting, ClassAttendance, ClassProblem,
   # Manajemen Penelitian dan Pengabdian
   ResearchSchema, Research, ResearchMember,
   CommunityServiceSchema, CommunityService, CommunityServiceMember,
@@ -818,6 +881,8 @@ seeders:
   # Manajemen Tugas Akhir
   ThesisRubric, ThesisRubricDetail, ThesisTopic, Thesis, ThesisSupervisor, ThesisProposal, ThesisProposalAudience, ThesisLogbook,
   ThesisSeminar, ThesisSeminarAudience, ThesisSeminarReviewer, ThesisDefense, ThesisDefenseExaminer, ThesisDefenseScore
+  # Manajemen Bimbingan Akademik
+  CounsellingTopic, CounsellingLogbook, CounsellingLogbookDetail
 
 controllers:
   # Data Master
@@ -892,12 +957,14 @@ controllers:
     resource: api
   ClassLecturer:
     resource: api
-  StudyPlan:
+  CourseEnrollment:
     resource: api
-  StudyPlanDetail:
+  CourseEnrollmentDetail:
     resource: api
   # Manajemen Kehadiran
   ClassMeeting:
+    resource: api
+  ClassProblem:
     resource: api
   ClassAttendance:
     resource: api
@@ -961,6 +1028,12 @@ controllers:
   ThesisDefenseExaminer:
     resource: api
   ThesisDefenseScore:
+    resource: api
+  CounsellingTopic:
+    resource: api
+  CounsellingLogbook:
+    resource: api
+  CounsellingLogbookDetail:
     resource: api
 
 
